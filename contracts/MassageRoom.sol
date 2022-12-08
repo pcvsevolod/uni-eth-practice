@@ -74,17 +74,40 @@ contract ClientManager {
     }
 }
 
+contract ServiceManager {
+    struct Service {
+        string name;
+        uint256 price;
+    }
+
+    Service[] services;
+
+    function createService(string memory name, uint256 price) external {
+        services.push(Service(name, price));
+    }
+
+    function getServiceName(uint256 i) external view returns (string memory) {
+        return services[i].name;
+    }
+
+    function getServicePrice(uint256 i) external view returns (uint256) {
+        return services[i].price;
+    }
+}
+
 contract MassageRoom {
     address deployer;
 
     WorkerManager workerManager;
     ClientManager clientManager;
+    ServiceManager serviceManager;
 
     constructor() {
         deployer = msg.sender;
 
         workerManager = new WorkerManager();
         clientManager = new ClientManager();
+        serviceManager = new ServiceManager();
     }
 
     modifier _canApproveWorkerRegistrationRequests() {
@@ -113,6 +136,11 @@ contract MassageRoom {
             workerManager.isRequestHere(targetWorker),
             "Request isn't here"
         );
+        _;
+    }
+
+    modifier _canCreateServices() {
+        require(msg.sender == deployer, "Only admin can create services");
         _;
     }
 
@@ -169,5 +197,20 @@ contract MassageRoom {
 
     function isAClient(address addr) external view returns (bool) {
         return clientManager.isClientHere(addr);
+    }
+
+    function createService(string memory name, uint256 price)
+        external
+        _canCreateServices
+    {
+        serviceManager.createService(name, price);
+    }
+
+    function getServiceName(uint256 i) external view returns (string memory) {
+        return serviceManager.getServiceName(i);
+    }
+
+    function getServicePrice(uint256 i) external view returns (uint256) {
+        return serviceManager.getServicePrice(i);
     }
 }

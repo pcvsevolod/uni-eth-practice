@@ -1,4 +1,5 @@
 const MassageRoom = artifacts.require('MassageRoom');
+const truffleAssert = require('truffle-assertions');
 
 contract('MassageRoom', (accounts) => {
   let contract;
@@ -21,6 +22,12 @@ contract('MassageRoom', (accounts) => {
     addr: accounts[9],
     name: 'Guest',
   };
+
+  const services = [
+    { name: 'Service Zero', price: 0 },
+    { name: 'Service One', price: 1_000 },
+    { name: 'Service Two', price: 2_000 },
+  ];
 
   beforeEach('Clearing contract', async () => {
     contract = await MassageRoom.new({ from: admin.addr });
@@ -69,6 +76,25 @@ contract('MassageRoom', (accounts) => {
       await contract.registerAsClient(client.name, { from: client.addr });
       const amIAClient = await contract.isAClient.call(client.addr, { from: client.addr });
       assert.equal(amIAClient, true, 'Should be client');
+    });
+  });
+
+  describe('Working with services', () => {
+    it('Should create a service as admin', async () => {
+      await contract.createService(services[0].name, services[0].price, { from: admin.addr });
+      const serviceName = await contract.getServiceName.call(0, { from: client.addr });
+      assert.equal(serviceName, services[0].name, 'Wrong service name');
+      const servicePrice = await contract.getServicePrice.call(0, { from: client.addr });
+      assert.equal(servicePrice, services[0].price, 'Wrong service price');
+    });
+
+    it('Should fail to create a service as non admin', async () => {
+      const err = 'Only admin can create services';
+
+      await truffleAssert.reverts(
+        contract.createService(services[0].name, services[0].price, { from: guest.addr }),
+        err,
+      );
     });
   });
 });
