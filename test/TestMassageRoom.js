@@ -12,6 +12,11 @@ contract('MassageRoom', (accounts) => {
     name: 'Worker Zero',
   };
 
+  const guest = {
+    addr: accounts[9],
+    name: 'Guest',
+  };
+
   beforeEach('Clearing contract', async () => {
     contract = await MassageRoom.new({ from: admin.addr });
   });
@@ -30,10 +35,27 @@ contract('MassageRoom', (accounts) => {
       assert.equal(amIAWorker, false, 'Worker without admin permission');
 
       await contract.approveWorkerRegistrationRequest(worker.addr, { from: admin.addr });
+
       const requestPutAfter = await contract.haveIAskedToBeAWorker.call({ from: worker.addr });
       const amIAWorkerAfter = await contract.amIAWorker.call({ from: worker.addr });
       assert.equal(amIAWorkerAfter, true, 'Request was not approved');
       assert.equal(requestPutAfter, false, 'Request is still here');
+    });
+
+    it('Should change worker status as same worker', async () => {
+      await contract.askToRegisterAsWorker(worker.name, { from: worker.addr });
+      await contract.approveWorkerRegistrationRequest(worker.addr, { from: admin.addr });
+
+      let available = await contract.isWorkerAvailable.call(worker.addr, { from: worker.addr });
+      assert.equal(available, true, 'Worker is not available after registration');
+
+      await contract.setWorkerAsUnavailable(worker.addr, { from: worker.addr });
+      available = await contract.isWorkerAvailable.call(worker.addr, { from: worker.addr });
+      assert.equal(available, false, 'Worker should change to unavailable');
+
+      await contract.setWorkerAsAvailable(worker.addr, { from: worker.addr });
+      available = await contract.isWorkerAvailable.call(worker.addr, { from: worker.addr });
+      assert.equal(available, true, 'Worker should change to available');
     });
   });
 });

@@ -6,9 +6,16 @@ contract WorkerManager {
         bool isHere;
     }
 
+    enum WorkerStatus {
+        Unknown,
+        Available,
+        Unavailable
+    }
+
     struct Worker {
         string name;
         bool isHere;
+        WorkerStatus status;
     }
 
     mapping(address => Request) requests;
@@ -20,7 +27,11 @@ contract WorkerManager {
 
     function approveRequest(address addr) external {
         requests[addr].isHere = false;
-        workers[addr] = Worker(requests[addr].name, true);
+        workers[addr] = Worker(
+            requests[addr].name,
+            true,
+            WorkerStatus.Available
+        );
     }
 
     function isRequestHere(address addr) external view returns (bool) {
@@ -29,6 +40,20 @@ contract WorkerManager {
 
     function isWorkerHere(address addr) external view returns (bool) {
         return workers[addr].isHere;
+    }
+
+    function isWorkerAvailable(address addr) external view returns (bool) {
+        return
+            workers[addr].isHere &&
+            workers[addr].status == WorkerStatus.Available;
+    }
+
+    function setWorkerAsUnavailable(address addr) external {
+        workers[addr].status = WorkerStatus.Unavailable;
+    }
+
+    function setWorkerAsAvailable(address addr) external {
+        workers[addr].status = WorkerStatus.Available;
     }
 }
 
@@ -47,6 +72,27 @@ contract MassageRoom {
         require(
             msg.sender == deployer,
             "Only deployer can approve worker registration requests"
+        );
+        _;
+    }
+
+    modifier _canChangeWorkerStatus(address targetWorker) {
+        require(
+            msg.sender == deployer || msg.sender == targetWorker,
+            "Only deployer can approve worker registration requests"
+        );
+        _;
+    }
+
+    modifier _hasWorker(address targetWorker) {
+        require(workerManager.isWorkerHere(targetWorker), "Worker isn't here");
+        _;
+    }
+
+    modifier _hasWorkerRequest(address targetWorker) {
+        require(
+            workerManager.isRequestHere(targetWorker),
+            "Request isn't here"
         );
         _;
     }
@@ -72,5 +118,29 @@ contract MassageRoom {
 
     function amIAWorker() external view returns (bool) {
         return workerManager.isWorkerHere(msg.sender);
+    }
+
+    function isWorkerAvailable(address workerAddr)
+        external
+        view
+        returns (bool)
+    {
+        return workerManager.isWorkerAvailable(workerAddr);
+    }
+
+    function setWorkerAsUnavailable(address workerAddr)
+        external
+        _canChangeWorkerStatus(workerAddr)
+        _hasWorker(workerAddr)
+    {
+        workerManager.setWorkerAsUnavailable(workerAddr);
+    }
+
+    function setWorkerAsAvailable(address workerAddr)
+        external
+        _canChangeWorkerStatus(workerAddr)
+        _hasWorker(workerAddr)
+    {
+        workerManager.setWorkerAsAvailable(workerAddr);
     }
 }
