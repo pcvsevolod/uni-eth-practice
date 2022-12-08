@@ -138,4 +138,81 @@ contract('MassageRoom', (accounts) => {
       );
     });
   });
+
+  describe('Working with appointments', () => {
+    it('Should create an appointment', async () => {
+      await contract.createService(services[0].name, services[0].price, { from: admin.addr });
+      await contract.createService(services[1].name, services[1].price, { from: admin.addr });
+
+      await contract.askToRegisterAsWorker(worker.name, { from: worker.addr });
+      await contract.approveWorkerRegistrationRequest(worker.addr, { from: admin.addr });
+
+      await contract.registerAsClient(client.name, { from: client.addr });
+
+      const serviceIndex = 1;
+      const time = 1702035628;
+      await contract.requestAppointment(
+        serviceIndex,
+        time,
+        { from: client.addr, value: services[serviceIndex].price },
+      );
+
+      const nextAppointments = await contract.getClientAppointments(
+        client.addr,
+        { from: client.addr },
+      );
+      assert.equal(nextAppointments.toString(), '0,-1,-1,-1,-1', 'Incorrect appointment indexes');
+
+      const appointmentService = await contract.getAppointmentService(0, { from: client.addr });
+      const appointmentTime = await contract.getAppointmentTime(0, { from: client.addr });
+      let approved = await contract.isAppointmentApproved(0, { from: client.addr });
+
+      assert.equal(appointmentService, serviceIndex, 'Wrong service index');
+      assert.equal(appointmentTime, time, 'Wrong time');
+      assert.equal(approved, false, 'Appointment should not be approved');
+
+      await contract.approveAppointment(0, { from: worker.addr });
+      approved = await contract.isAppointmentApproved(0, { from: client.addr });
+      assert.equal(approved, true, 'Appointment should be approved');
+    });
+  });
+
+  describe('Working with appointments', () => {
+    it('Should fail to create an appointment', async () => {
+      await contract.createService(services[0].name, services[0].price, { from: admin.addr });
+      await contract.createService(services[1].name, services[1].price, { from: admin.addr });
+
+      await contract.askToRegisterAsWorker(worker.name, { from: worker.addr });
+      await contract.approveWorkerRegistrationRequest(worker.addr, { from: admin.addr });
+
+      await contract.registerAsClient(client.name, { from: client.addr });
+
+      const serviceIndex = 1;
+      const wrongTime = 1702035;
+      const correctTime = 1702035628;
+      await truffleAssert.reverts(
+        contract.requestAppointment(
+          serviceIndex,
+          wrongTime,
+          { from: client.addr, value: services[serviceIndex].price },
+        ),
+        'Wrong time',
+      );
+
+      await truffleAssert.reverts(
+        contract.requestAppointment(
+          serviceIndex,
+          correctTime,
+          { from: client.addr, value: 0 },
+        ),
+        'Wrong value for service',
+      );
+
+      const nextAppointments = await contract.getClientAppointments(
+        client.addr,
+        { from: client.addr },
+      );
+      assert.equal(nextAppointments.toString(), '-1,-1,-1,-1,-1', 'Incorrect appointment indexes');
+    });
+  });
 });

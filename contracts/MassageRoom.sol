@@ -117,8 +117,95 @@ contract ServiceManager {
         services[i].status = ServiceStatus.Available;
     }
 
-    function isServiceAvailable(uint i) external view returns(bool){
+    function isServiceAvailable(uint256 i) external view returns (bool) {
         return services[i].status == ServiceStatus.Available;
+    }
+}
+
+contract AppointmentManager {
+    enum AppointmentStatus {
+        Unknown,
+        Unapproved,
+        Approved
+    }
+
+    struct Appointment {
+        uint256 service;
+        uint256 time;
+        address client;
+        address worker;
+        AppointmentStatus status;
+    }
+
+    Appointment[] appointments;
+
+    function getAppointmentsLength() external view returns (uint256) {
+        return appointments.length;
+    }
+
+    function hasAppointment(uint256 i) external view returns (bool) {
+        return i < appointments.length;
+    }
+
+    function isAppointmentApproved(uint256 i) external view returns (bool) {
+        return appointments[i].status == AppointmentStatus.Approved;
+    }
+
+    function requestAppointment(
+        address client,
+        uint256 service,
+        uint256 time
+    ) external {
+        appointments.push(
+            Appointment(
+                service,
+                time,
+                client,
+                address(0),
+                AppointmentStatus.Unapproved
+            )
+        );
+    }
+
+    function approveAppointment(uint256 i) external {
+        appointments[i].status = AppointmentStatus.Approved;
+    }
+
+    function getServiceIndex(uint256 i) external view returns (uint256) {
+        return appointments[i].service;
+    }
+
+    function getClientAppointments(address client)
+        external
+        view
+        returns (int256[5] memory)
+    {
+        uint256 iRet = 0;
+        uint256 iA = 0;
+        uint256 aL = appointments.length;
+        uint256 reqI = 5;
+
+        int256[5] memory result;
+
+        for (; iA < aL && iRet < reqI; ++iA) {
+            if (appointments[iA].client == client) {
+                result[iRet++] = int256(iA);
+            }
+        }
+
+        for (; iRet < reqI; ++iRet) {
+            result[iRet] = -1;
+        }
+
+        return result;
+    }
+
+    function getAppointmentService(uint256 i) external view returns (uint256) {
+        return appointments[i].service;
+    }
+
+    function getAppointmentTime(uint256 i) external view returns (uint256) {
+        return appointments[i].time;
     }
 }
 
@@ -128,6 +215,7 @@ contract MassageRoom {
     WorkerManager workerManager;
     ClientManager clientManager;
     ServiceManager serviceManager;
+    AppointmentManager appointmentManager;
 
     constructor() {
         deployer = msg.sender;
@@ -135,6 +223,7 @@ contract MassageRoom {
         workerManager = new WorkerManager();
         clientManager = new ClientManager();
         serviceManager = new ServiceManager();
+        appointmentManager = new AppointmentManager();
     }
 
     modifier _canApproveWorkerRegistrationRequests() {
@@ -166,6 +255,11 @@ contract MassageRoom {
         _;
     }
 
+    modifier _hasClient(address targetClient) {
+        require(clientManager.isClientHere(targetClient), "Client isn't here");
+        _;
+    }
+
     modifier _canCreateServices() {
         require(msg.sender == deployer, "Only admin can create services");
         _;
@@ -178,6 +272,22 @@ contract MassageRoom {
 
     modifier _hasService(uint256 i) {
         require(serviceManager.hasService(i), "Service doesn't exist");
+        _;
+    }
+
+    modifier _hasUnapprovedAppointment(uint256 i) {
+        require(
+            appointmentManager.isAppointmentApproved(i) == false,
+            "Don't have an unapproved appointment"
+        );
+        _;
+    }
+
+    modifier _hasAppointment(uint256 i) {
+        require(
+            appointmentManager.hasAppointment(i),
+            "Don't have an appointment"
+        );
         _;
     }
 
@@ -281,7 +391,80 @@ contract MassageRoom {
         serviceManager.setServiceAsAvailable(i);
     }
 
-    function isServiceAvailable(uint i) external view _hasService(i) returns(bool) {
+    function isServiceAvailable(uint256 i)
+        external
+        view
+        _hasService(i)
+        returns (bool)
+    {
         return serviceManager.isServiceAvailable(i);
+    }
+
+    function requestAppointment(uint256 serviceI, uint256 time)
+        external
+        payable
+        _hasClient(msg.sender)
+        _hasService(serviceI)
+    {
+        require(
+            msg.value == serviceManager.getServicePrice(serviceI),
+            "Wrong value for service"
+        );
+
+        require(block.timestamp < time, "Wrong time");
+
+        appointmentManager.requestAppointment(msg.sender, serviceI, time);
+    }
+
+    function isAppointmentApproved(uint256 i)
+        external
+        view
+        _hasAppointment(i)
+        returns (bool)
+    {
+        return appointmentManager.isAppointmentApproved(i);
+    }
+
+    function approveAppointment(uint256 i)
+        external
+        payable
+        _hasWorker(msg.sender)
+        _hasAppointment(i)
+        _hasUnapprovedAppointment(i)
+    {
+        require(
+            workerManager.isWorkerAvailable(msg.sender),
+            "You are unavailable"
+        );
+        appointmentManager.approveAppointment(i);
+        uint256 serviceI = appointmentManager.getServiceIndex(i);
+        uint256 servicePrice = serviceManager.getServicePrice(serviceI);
+        payable(msg.sender).transfer(servicePrice);
+    }
+
+    function getClientAppointments(address client)
+        external
+        view
+        returns (int256[5] memory)
+    {
+        return appointmentManager.getClientAppointments(client);
+    }
+
+    function getAppointmentService(uint256 i)
+        external
+        view
+        _hasAppointment(i)
+        returns (uint256)
+    {
+        return appointmentManager.getAppointmentService(i);
+    }
+
+    function getAppointmentTime(uint256 i)
+        external
+        view
+        _hasAppointment(i)
+        returns (uint256)
+    {
+        return appointmentManager.getAppointmentTime(i);
     }
 }
