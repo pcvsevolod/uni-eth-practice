@@ -108,5 +108,34 @@ contract('MassageRoom', (accounts) => {
         err,
       );
     });
+
+    it('Should change service status as admin', async () => {
+      await contract.createService(services[0].name, services[0].price, { from: admin.addr });
+      let available = await contract.isServiceAvailable(0, { from: guest.addr });
+      assert.equal(available, true, 'Service should be created available');
+
+      await contract.setServiceAsUnavailable(0, { from: admin.addr });
+      available = await contract.isServiceAvailable(0, { from: guest.addr });
+      assert.equal(available, false, 'Service should be unavailable');
+
+      await contract.setServiceAsAvailable(0, { from: admin.addr });
+      available = await contract.isServiceAvailable(0, { from: guest.addr });
+      assert.equal(available, true, 'Service should be available');
+    });
+
+    it('Should fail to change service status as non admin', async () => {
+      await contract.createService(services[0].name, services[0].price, { from: admin.addr });
+      const err = 'Only admin can change service status';
+
+      await truffleAssert.reverts(
+        contract.setServiceAsUnavailable(0, { from: guest.addr }),
+        err,
+      );
+
+      await truffleAssert.reverts(
+        contract.setServiceAsAvailable(0, { from: guest.addr }),
+        err,
+      );
+    });
   });
 });

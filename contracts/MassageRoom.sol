@@ -75,15 +75,22 @@ contract ClientManager {
 }
 
 contract ServiceManager {
+    enum ServiceStatus {
+        Unknown,
+        Available,
+        Unavailable
+    }
+
     struct Service {
         string name;
         uint256 price;
+        ServiceStatus status;
     }
 
     Service[] services;
 
     function createService(string memory name, uint256 price) external {
-        services.push(Service(name, price));
+        services.push(Service(name, price, ServiceStatus.Available));
     }
 
     function hasService(uint256 i) external view returns (bool) {
@@ -100,6 +107,18 @@ contract ServiceManager {
 
     function getServicePrice(uint256 i) external view returns (uint256) {
         return services[i].price;
+    }
+
+    function setServiceAsUnavailable(uint256 i) external {
+        services[i].status = ServiceStatus.Unavailable;
+    }
+
+    function setServiceAsAvailable(uint256 i) external {
+        services[i].status = ServiceStatus.Available;
+    }
+
+    function isServiceAvailable(uint i) external view returns(bool){
+        return services[i].status == ServiceStatus.Available;
     }
 }
 
@@ -149,6 +168,11 @@ contract MassageRoom {
 
     modifier _canCreateServices() {
         require(msg.sender == deployer, "Only admin can create services");
+        _;
+    }
+
+    modifier _canChangeServiceStatus() {
+        require(msg.sender == deployer, "Only admin can change service status");
         _;
     }
 
@@ -239,5 +263,25 @@ contract MassageRoom {
         returns (uint256)
     {
         return serviceManager.getServicePrice(i);
+    }
+
+    function setServiceAsUnavailable(uint256 i)
+        external
+        _canChangeServiceStatus
+        _hasService(i)
+    {
+        serviceManager.setServiceAsUnavailable(i);
+    }
+
+    function setServiceAsAvailable(uint256 i)
+        external
+        _canChangeServiceStatus
+        _hasService(i)
+    {
+        serviceManager.setServiceAsAvailable(i);
+    }
+
+    function isServiceAvailable(uint i) external view _hasService(i) returns(bool) {
+        return serviceManager.isServiceAvailable(i);
     }
 }
