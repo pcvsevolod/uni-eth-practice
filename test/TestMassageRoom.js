@@ -86,6 +86,9 @@ contract('MassageRoom', (accounts) => {
       assert.equal(serviceName, services[0].name, 'Wrong service name');
       const servicePrice = await contract.getServicePrice.call(0, { from: client.addr });
       assert.equal(servicePrice, services[0].price, 'Wrong service price');
+
+      const servicesLength = await contract.getServicesLength.call({ from: guest.addr });
+      assert.equal(servicesLength, 1, 'Wrong services length');
     });
 
     it('Should fail to create a service as non admin', async () => {
@@ -93,6 +96,15 @@ contract('MassageRoom', (accounts) => {
 
       await truffleAssert.reverts(
         contract.createService(services[0].name, services[0].price, { from: guest.addr }),
+        err,
+      );
+    });
+
+    it('Should fail to get non-existent service', async () => {
+      const err = "Service doesn't exist";
+
+      await truffleAssert.reverts(
+        contract.getServiceName.call(0, { from: client.addr }),
         err,
       );
     });

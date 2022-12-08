@@ -86,6 +86,14 @@ contract ServiceManager {
         services.push(Service(name, price));
     }
 
+    function hasService(uint256 i) external view returns (bool) {
+        return i < services.length;
+    }
+
+    function getServicesLength() external view returns (uint256) {
+        return services.length;
+    }
+
     function getServiceName(uint256 i) external view returns (string memory) {
         return services[i].name;
     }
@@ -141,6 +149,11 @@ contract MassageRoom {
 
     modifier _canCreateServices() {
         require(msg.sender == deployer, "Only admin can create services");
+        _;
+    }
+
+    modifier _hasService(uint256 i) {
+        require(serviceManager.hasService(i), "Service doesn't exist");
         _;
     }
 
@@ -206,11 +219,25 @@ contract MassageRoom {
         serviceManager.createService(name, price);
     }
 
-    function getServiceName(uint256 i) external view returns (string memory) {
+    function getServicesLength() external view returns (uint256) {
+        return serviceManager.getServicesLength();
+    }
+
+    function getServiceName(uint256 i)
+        external
+        view
+        _hasService(i)
+        returns (string memory)
+    {
         return serviceManager.getServiceName(i);
     }
 
-    function getServicePrice(uint256 i) external view returns (uint256) {
+    function getServicePrice(uint256 i)
+        external
+        view
+        _hasService(i)
+        returns (uint256)
+    {
         return serviceManager.getServicePrice(i);
     }
 }
