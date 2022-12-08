@@ -95,6 +95,10 @@ contract MassageRoom {
         return 3;
     }
 
+    function isAdmin() external view returns (bool) {
+        return msg.sender == deployer;
+    }
+
     //* Workers//
     function askToRegisterAsWorker(string memory name) external {
         workerManager.putRequestToRegister(msg.sender, name);
