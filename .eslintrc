@@ -1,0 +1,46 @@
+{
+    "env": {
+        "browser": true,
+        "commonjs": true,
+        "es2021": true,
+        "node": true
+    },
+    "extends": [
+        "airbnb-base"
+    ],
+    "parserOptions": {
+        "ecmaVersion": 12
+    },
+    "plugins": [
+        "json-format"
+    ],
+    "rules": {
+        "no-console": "warn",
+        "func-names": "off",
+        "no-process-exit": "off",
+        "import/prefer-default-export": "off",
+        "import/no-unresolved": "off",
+        "import/extensions": "off",
+        "no-underscore-dangle": "off",
+        "no-undef": "off",
+        "max-len": "warn",
+        "no-use-before-define": "warn",
+        "class-methods-use-this": "off",
+        "no-plusplus": "off",
+        "no-useless-constructor": "off",
+        "no-empty-function": "off",
+        "linebreak-style": 0,
+        "lines-between-class-members": ["error", "always", { "exceptAfterSingleLine": true }],
+        "max-classes-per-file": "off",
+        "no-shadow": "off",
+        "prefer-destructuring": ["error", {"object": true, "array": false}],
+        "no-param-reassign": "warn",
+        "no-unused-vars": "off",
+        "function-paren-newline": "off"
+    },
+    "settings": {
+        "json/sort-package-json": "standard",
+        "json/ignore-files": ["**/package-lock.json"],
+        "json/json-with-comments-files": ["**/tsconfig.json", ".vscode/**"]
+    }
+}
