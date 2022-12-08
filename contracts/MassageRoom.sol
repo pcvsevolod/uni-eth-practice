@@ -57,15 +57,34 @@ contract WorkerManager {
     }
 }
 
+contract ClientManager {
+    struct Client {
+        string name;
+        bool isHere;
+    }
+
+    mapping(address => Client) clients;
+
+    function registerClient(address addr, string memory name) external {
+        clients[addr] = Client(name, true);
+    }
+
+    function isClientHere(address addr) external view returns (bool) {
+        return clients[addr].isHere;
+    }
+}
+
 contract MassageRoom {
     address deployer;
 
     WorkerManager workerManager;
+    ClientManager clientManager;
 
     constructor() {
         deployer = msg.sender;
 
         workerManager = new WorkerManager();
+        clientManager = new ClientManager();
     }
 
     modifier _canApproveWorkerRegistrationRequests() {
@@ -142,5 +161,13 @@ contract MassageRoom {
         _hasWorker(workerAddr)
     {
         workerManager.setWorkerAsAvailable(workerAddr);
+    }
+
+    function registerAsClient(string memory name) external {
+        clientManager.registerClient(msg.sender, name);
+    }
+
+    function amIAClient() external view returns (bool) {
+        return clientManager.isClientHere(msg.sender);
     }
 }

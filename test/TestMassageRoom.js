@@ -12,6 +12,11 @@ contract('MassageRoom', (accounts) => {
     name: 'Worker Zero',
   };
 
+  const client = {
+    addr: accounts[3],
+    name: 'Client Zero',
+  };
+
   const guest = {
     addr: accounts[9],
     name: 'Guest',
@@ -56,6 +61,14 @@ contract('MassageRoom', (accounts) => {
       await contract.setWorkerAsAvailable(worker.addr, { from: worker.addr });
       available = await contract.isWorkerAvailable.call(worker.addr, { from: worker.addr });
       assert.equal(available, true, 'Worker should change to available');
+    });
+  });
+
+  describe('Working with clients', () => {
+    it('Should register as client', async () => {
+      await contract.registerAsClient(client.name, { from: client.addr });
+      const amIAClient = await contract.amIAClient.call({ from: client.addr });
+      assert.equal(amIAClient, true, 'Should be client');
     });
   });
 });
