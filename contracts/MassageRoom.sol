@@ -135,8 +135,8 @@ contract MassageRoom {
         return workerManager.isRequestHere(msg.sender);
     }
 
-    function amIAWorker() external view returns (bool) {
-        return workerManager.isWorkerHere(msg.sender);
+    function isAWorker(address addr) external view returns (bool) {
+        return workerManager.isWorkerHere(addr);
     }
 
     function isWorkerAvailable(address workerAddr)
@@ -167,7 +167,7 @@ contract MassageRoom {
         clientManager.registerClient(msg.sender, name);
     }
 
-    function amIAClient() external view returns (bool) {
-        return clientManager.isClientHere(msg.sender);
+    function isAClient(address addr) external view returns (bool) {
+        return clientManager.isClientHere(addr);
     }
 }

@@ -35,14 +35,14 @@ contract('MassageRoom', (accounts) => {
     it('Should register as worker', async () => {
       await contract.askToRegisterAsWorker(worker.name, { from: worker.addr });
       const requestPut = await contract.haveIAskedToBeAWorker.call({ from: worker.addr });
-      const amIAWorker = await contract.amIAWorker.call({ from: worker.addr });
+      const amIAWorker = await contract.isAWorker.call(worker.addr, { from: worker.addr });
       assert.equal(requestPut, true, 'Request was not put');
       assert.equal(amIAWorker, false, 'Worker without admin permission');
 
       await contract.approveWorkerRegistrationRequest(worker.addr, { from: admin.addr });
 
       const requestPutAfter = await contract.haveIAskedToBeAWorker.call({ from: worker.addr });
-      const amIAWorkerAfter = await contract.amIAWorker.call({ from: worker.addr });
+      const amIAWorkerAfter = await contract.isAWorker.call(worker.addr, { from: worker.addr });
       assert.equal(amIAWorkerAfter, true, 'Request was not approved');
       assert.equal(requestPutAfter, false, 'Request is still here');
     });
@@ -67,7 +67,7 @@ contract('MassageRoom', (accounts) => {
   describe('Working with clients', () => {
     it('Should register as client', async () => {
       await contract.registerAsClient(client.name, { from: client.addr });
-      const amIAClient = await contract.amIAClient.call({ from: client.addr });
+      const amIAClient = await contract.isAClient.call(client.addr, { from: client.addr });
       assert.equal(amIAClient, true, 'Should be client');
     });
   });
