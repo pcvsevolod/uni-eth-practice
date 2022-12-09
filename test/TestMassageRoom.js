@@ -52,6 +52,9 @@ contract('MassageRoom', (accounts) => {
       const amIAWorkerAfter = await contract.isAWorker.call(worker.addr, { from: worker.addr });
       assert.equal(amIAWorkerAfter, true, 'Request was not approved');
       assert.equal(requestPutAfter, false, 'Request is still here');
+
+      const workerName = await contract.getWorkerName(worker.addr, { from: worker.addr });
+      assert.equal(workerName, worker.name, 'Wrong worker name');
     });
 
     it('Should change worker status as same worker', async () => {

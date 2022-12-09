@@ -119,6 +119,15 @@ contract MassageRoom {
         return workerManager.isWorkerHere(addr);
     }
 
+    function getWorkerName(address addr)
+        external
+        view
+        _hasWorker(addr)
+        returns (string memory)
+    {
+        return workerManager.getWorkerName(addr);
+    }
+
     function isWorkerAvailable(address workerAddr)
         external
         view
