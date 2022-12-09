@@ -41,6 +41,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.tabWidget.setTabEnabled(3, False)
         self.buttonLogin.clicked.connect(self.onLogin)
         self.buttonRefresh.clicked.connect(self.onRefresh)
+        self.buttonRegisterAsClient.clicked.connect(self.onRegisterAsClient)
+        self.buttonRegisterAsWorker.clicked.connect(self.onRegisterAsWorker)
         self.refresh()
 
     def onLogin(self):
@@ -48,20 +50,28 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         private_key = self.textPrivateKey.text()
         self.localManager.tryLogin(address, private_key)
         if self.localManager.isLoggedIn():
-            self.label.setText("Logged in!")
+            self.labelLogin.setText("Logged in!")
         else:
-            self.label.setText("Incorrect address or password")
+            self.labelLogin.setText("Incorrect address or password")
 
     def onRefresh(self):
         self.refresh()
 
+    def onRegisterAsClient(self):
+        self.massageRoom.registerAsClient(localManager.address)
+
+    def onRegisterAsWorker(self):
+        self.massageRoom.askToRegisterAsWorker(localManager.address)
+
     def refresh(self):
-        self.updateServicesTable()
         self.updateTabs()
+        self.updateServicesTable()
+        self.updateButtons()
 
     def updateServicesTable(self):
         self.tableServices.clear()
         servicesLength = self.massageRoom.getServicesLength()
+        print(f"{servicesLength=}")
         for i in range(servicesLength):
             self.tableServices.setItem(
                 i, 0, QTableWidgetItem(str(self.massageRoom.getServiceName(i)))
@@ -80,9 +90,31 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if self.tabWidget.currentIndex() == 1:
                 self.tabWidget.setCurrentIndex(0)
 
+        if self.massageRoom.isAWorker(localManager.address):
+            self.tabWidget.setTabEnabled(2, True)
+            print(f"is Admin")
+        else:
+            self.tabWidget.setTabEnabled(2, False)
+            print(f"not Admin")
+            if self.tabWidget.currentIndex() == 2:
+                self.tabWidget.setCurrentIndex(0)
+
+        if self.massageRoom.isAClient(localManager.address):
+            self.tabWidget.setTabEnabled(3, True)
+            print(f"is Admin")
+        else:
+            self.tabWidget.setTabEnabled(3, False)
+            print(f"not Admin")
+            if self.tabWidget.currentIndex() == 3:
+                self.tabWidget.setCurrentIndex(0)
+
+    def updateButtons(self):
+        loggedIn = localManager.isLoggedIn()
+        self.buttonRegisterAsClient.setEnabled(loggedIn)
+        self.buttonRegisterAsWorker.setEnabled(loggedIn)
+
 
 if __name__ == "__main__":
-
     app = QApplication(sys.argv)
     localManager = LocalManager()
 

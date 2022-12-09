@@ -56,4 +56,4 @@ accounts = [
     ),
 ]
 
-contractAddress = "0x2f680D606739CC4e11B95c34c55716e935E28c52"
+contractAddress = "0x6d313e4E565dF9d8f8Af62CB5E7F677df6410427"
