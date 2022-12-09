@@ -273,6 +273,14 @@ contract MassageRoom {
         return appointmentManager.getClientAppointments(client);
     }
 
+    function getUnapprovedAppointments(uint256 serviceI)
+        external
+        view
+        returns (int256[5] memory)
+    {
+        return appointmentManager.getUnapprovedAppointments(serviceI);
+    }
+
     function getAppointmentService(uint256 i)
         external
         view

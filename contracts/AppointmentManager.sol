@@ -78,6 +78,34 @@ contract AppointmentManager {
         return result;
     }
 
+    function getUnapprovedAppointments(uint256 serviceI)
+        external
+        view
+        returns (int256[5] memory)
+    {
+        uint256 iRet = 0;
+        uint256 iA = 0;
+        uint256 aL = appointments.length;
+        uint256 reqI = 5;
+
+        int256[5] memory result;
+
+        for (; iA < aL && iRet < reqI; ++iA) {
+            if (
+                appointments[iA].service == serviceI &&
+                appointments[iA].status == AppointmentStatus.Unapproved
+            ) {
+                result[iRet++] = int256(iA);
+            }
+        }
+
+        for (; iRet < reqI; ++iRet) {
+            result[iRet] = -1;
+        }
+
+        return result;
+    }
+
     function getAppointmentService(uint256 i) external view returns (uint256) {
         return appointments[i].service;
     }

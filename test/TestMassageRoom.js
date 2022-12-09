@@ -178,9 +178,7 @@ contract('MassageRoom', (accounts) => {
       approved = await contract.isAppointmentApproved(0, { from: client.addr });
       assert.equal(approved, true, 'Appointment should be approved');
     });
-  });
 
-  describe('Working with appointments', () => {
     it('Should fail to create an appointment', async () => {
       await contract.createService(services[0].name, services[0].price, { from: admin.addr });
       await contract.createService(services[1].name, services[1].price, { from: admin.addr });
@@ -214,6 +212,38 @@ contract('MassageRoom', (accounts) => {
       const nextAppointments = await contract.getClientAppointments(
         client.addr,
         { from: client.addr },
+      );
+      assert.equal(nextAppointments.toString(), '-1,-1,-1,-1,-1', 'Incorrect appointment indexes');
+    });
+
+    it('Should get appointment for service', async () => {
+      await contract.createService(services[0].name, services[0].price, { from: admin.addr });
+      await contract.createService(services[1].name, services[1].price, { from: admin.addr });
+
+      await contract.askToRegisterAsWorker(worker.name, { from: worker.addr });
+      await contract.approveWorkerRegistrationRequest(worker.addr, { from: admin.addr });
+
+      await contract.registerAsClient(client.name, { from: client.addr });
+
+      const serviceIndex = 1;
+      const time = 1702035628;
+      await contract.requestAppointment(
+        serviceIndex,
+        time,
+        { from: client.addr, value: services[serviceIndex].price },
+      );
+
+      let nextAppointments = await contract.getUnapprovedAppointments(
+        serviceIndex,
+        { from: worker.addr },
+      );
+      assert.equal(nextAppointments.toString(), '0,-1,-1,-1,-1', 'Incorrect appointment indexes');
+
+      await contract.approveAppointment(0, { from: worker.addr });
+
+      nextAppointments = await contract.getUnapprovedAppointments(
+        serviceIndex,
+        { from: worker.addr },
       );
       assert.equal(nextAppointments.toString(), '-1,-1,-1,-1,-1', 'Incorrect appointment indexes');
     });
