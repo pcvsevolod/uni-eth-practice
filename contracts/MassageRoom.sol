@@ -111,8 +111,8 @@ contract MassageRoom {
         workerManager.approveRequest(workerAddr);
     }
 
-    function haveIAskedToBeAWorker() external view returns (bool) {
-        return workerManager.isRequestHere(msg.sender);
+    function isWorkerRequestHere(address addr) external view returns (bool) {
+        return workerManager.isRequestHere(addr);
     }
 
     function isAWorker(address addr) external view returns (bool) {
