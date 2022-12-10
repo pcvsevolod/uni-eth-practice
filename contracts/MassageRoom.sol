@@ -22,13 +22,13 @@ contract MassageRoom {
         appointmentManager = new AppointmentManager();
     }
 
-    uint256 testV;
+    address testV;
 
-    function putTest(uint256 v) external {
+    function putTest(address v) external {
         testV = v;
     }
 
-    function getTest() external view returns (uint256) {
+    function getTest() external view returns (address) {
         return testV;
     }
 
