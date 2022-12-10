@@ -22,6 +22,16 @@ contract MassageRoom {
         appointmentManager = new AppointmentManager();
     }
 
+    uint256 testV;
+
+    function putTest(uint256 v) external {
+        testV = v;
+    }
+
+    function getTest() external view returns (uint256) {
+        return testV;
+    }
+
     //* Modifiers//
 
     modifier _canApproveWorkerRegistrationRequests() {
