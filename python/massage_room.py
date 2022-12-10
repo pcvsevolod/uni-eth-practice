@@ -16,10 +16,12 @@ class Service:
 class WorkerAppointment:
     service: int
     time: int
+    index: int
 
-    def __init__(self, service, time) -> None:
+    def __init__(self, service, time, index) -> None:
         self.service = service
         self.time = time
+        self.index = index
 
 
 class MassageRoom:
@@ -33,7 +35,6 @@ class MassageRoom:
     cached_have_asked_to_be_worker = False
     cached_name = ""
     cached_services = []
-    cached_worker_appointments = []
 
     def get_name(self) -> str:
         return self.cached_name
@@ -54,6 +55,24 @@ class MassageRoom:
 
     def get_services(self) -> List[Service]:
         return self.cached_services
+
+    def get_service_name(self, i: int) -> set:
+        return self.cached_services[i].name
+
+    def get_worker_appointments(self, serviceI: int) -> List[Service]:
+        if self.is_worker:
+            appointments = []
+            app_is = self.functions.getUnapprovedAppointments(serviceI).call()
+            for i in app_is:
+                if i >= 0:
+                    time = self.functions.getAppointmentTime(i).call()
+                    service = self.functions.getAppointmentService(i).call()
+                    appointments.append(
+                        WorkerAppointment(time=time, service=service, index=i)
+                    )
+            return appointments
+        else:
+            return []
 
     def refresh(self):
         print(f"{self.w3.get_account()=}")
@@ -93,17 +112,6 @@ class MassageRoom:
             price = self.functions.getServicePrice(i).call()
             available = self.functions.isServiceAvailable(i).call()
             self.cached_services.append(Service(name, price, available))
-
-        if self.is_worker:
-            self.cached_worker_appointments = []
-            app_is = self.functions.getUnapprovedAppointments().call()
-            for i in app_is:
-                if i >= 0:
-                    time = self.functions.getAppointmentTime(i).call()
-                    service = self.functions.getAppointmentService(i).call()
-                    self.cached_worker_appointments.append(
-                        WorkerAppointment(time, service)
-                    )
 
         print(f"{self.cached_is_admin=}")
         print(f"{self.cached_is_client=}")
@@ -154,3 +162,16 @@ class MassageRoom:
         print(f"{name=}")
         print(f"{price=}")
         self.functions.createService(name, price).transact()
+
+    def transact_request_appointment(self, service: int, time: int):
+        print("\n *** transact_request_appointment ***")
+        print(f"{service=}")
+        print(f"{time=}")
+        price = self.cached_services[service].price
+        self.functions.requestAppointment(service, time).transact({"value": price})
+
+    def transact_approve_appointment(self, service: int):
+        print("\n *** transact_approve_appointment ***")
+        print(f"{service=}")
+        price = self.cached_services[service].price
+        self.functions.approveAppointment(service).transact()

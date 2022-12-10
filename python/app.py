@@ -1,4 +1,5 @@
 import sys
+from datetime import datetime
 
 from PyQt5.QtWidgets import (
     QApplication,
@@ -92,6 +93,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.buttonGetRequestName.clicked.connect(self.on_get_request_name)
         self.buttonGetClientName.clicked.connect(self.on_get_client_name)
         self.buttonAdminAddService.clicked.connect(self.on_add_service)
+        self.buttonWorkerUpdateTable.clicked.connect(self.on_update_worker_table)
+        self.buttonRequestAppointment.clicked.connect(self.on_request_appointment)
+        self.buttonWorkerApproveAppointment.clicked.connect(self.on_approve_appointment)
 
     def update_name(self):
         name = m.get_name()
@@ -121,12 +125,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             disable_tab(1)
 
         if self.m.is_worker():
-            self.update_worker_table()
             enable_tab(2)
         else:
             disable_tab(2)
 
         if self.m.is_client():
+            self.update_client_appointment_table()
             enable_tab(3)
         else:
             disable_tab(3)
@@ -141,15 +145,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.tableServices.setItem(i, 0, QTableWidgetItem(str(s.name)))
             self.tableServices.setItem(i, 1, QTableWidgetItem(str(s.price)))
 
-    def update_worker_table(self):
-        self.tableServices.clear()
-        services = self.m.get_services()
-        self.tableServices.setRowCount(len(services))
-        self.tableServices.setColumnCount(2)
-        for i, s in enumerate(services):
-            print(f"{i=}, {s.name=} for {s.price=}")
-            self.tableServices.setItem(i, 0, QTableWidgetItem(str(s.name)))
-            self.tableServices.setItem(i, 1, QTableWidgetItem(str(s.price)))
+    def update_client_appointment_table(self):
+        pass
+        # self.tableServices.clear()
+        # services = self.m.get_services()
+        # self.tableServices.setRowCount(len(services))
+        # self.tableServices.setColumnCount(2)
+        # for i, s in enumerate(services):
+        #     print(f"{i=}, {s.name=} for {s.price=}")
+        #     self.tableServices.setItem(i, 0, QTableWidgetItem(str(s.name)))
+        #     self.tableServices.setItem(i, 1, QTableWidgetItem(str(s.price)))
 
     def on_login(self):
         address = self.textAddress.text()
@@ -217,6 +222,43 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         except Exception as e:
             print(f"{e=}")
             self.textAdminGName.setText("ERROR")
+
+    def on_update_worker_table(self):
+        try:
+            self.tableWorkerAppointments.clear()
+            service = int(self.textWorkerServiceIndex.text())
+            appointments = self.m.get_worker_appointments(service)
+            self.tableWorkerAppointments.setRowCount(len(appointments))
+            self.tableWorkerAppointments.setColumnCount(3)
+            for i, s in enumerate(appointments):
+                print(f"{i=}, {s.service=} for {s.time=}")
+
+                index = str(s.index)
+                self.tableWorkerAppointments.setItem(i, 0, QTableWidgetItem(index))
+
+                service_name = QTableWidgetItem(m.get_service_name(s.service))
+                self.tableWorkerAppointments.setItem(i, 1, service_name)
+
+                time = datetime.utcfromtimestamp(s.time).strftime("%Y-%m-%d %H:%M:%S")
+                self.tableWorkerAppointments.setItem(i, 2, QTableWidgetItem(time))
+        except Exception as e:
+            print(f"{e=}")
+
+    def on_request_appointment(self):
+        try:
+            time = int(self.textAppointmentTime.text())
+            service = int(self.textAppointmentServiceI.text())
+            m.transact_request_appointment(service, time)
+            self.refresh()
+        except Exception as e:
+            print(f"{e=}")
+
+    def on_approve_appointment(self):
+        try:
+            appointment = int(self.textAppointmentI.text())
+            m.transact_approve_appointment(appointment)
+        except Exception as e:
+            print(f"{e=}")
 
 
 if __name__ == "__main__":
