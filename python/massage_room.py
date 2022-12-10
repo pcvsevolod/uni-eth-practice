@@ -20,6 +20,7 @@ class MassageRoom:
     cached_is_admin = False
     cached_is_client = False
     cached_is_worker = False
+    cached_have_asked_to_be_worker = False
     cached_services = []
 
     def is_admin(self) -> bool:
@@ -27,6 +28,9 @@ class MassageRoom:
 
     def is_client(self) -> bool:
         return self.cached_is_client
+
+    def have_asked_to_be_worker(self) -> bool:
+        return self.cached_have_asked_to_be_worker
 
     def is_worker(self) -> bool:
         return self.cached_is_worker
@@ -43,6 +47,9 @@ class MassageRoom:
         if self.w3.is_logged_in():
             self.cached_is_admin = self.functions.isAdmin().call()
             self.cached_is_client = self.functions.isAClient(
+                self.w3.get_account()
+            ).call()
+            self.cached_is_worker = self.functions.isAWorker(
                 self.w3.get_account()
             ).call()
             self.cached_is_worker = self.functions.isAWorker(
@@ -66,8 +73,11 @@ class MassageRoom:
         print(f"{self.cached_is_worker=}")
         print(f"{self.cached_services=}")
 
+    def register_as_client(self, addr):
+        self.functions.registerAsClient(addr).call()
+
+    def register_as_worker(self, addr):
+        self.functions.askToRegisterAsWorker(addr).call()
+
     def getTestValue(self):
         return self.functions.getTestValue().call()
-
-    def isAdmin(self):
-        return self.functions.isAdmin().call()

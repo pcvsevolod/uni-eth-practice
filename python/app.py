@@ -40,15 +40,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def refresh(self):
         self.m.refresh()
-        # self.update_buttons()
+        self.update_buttons()
         # self.updateTabs()
         # self.updateServicesTable()
 
     def setup_buttons(self):
         self.buttonLogin.clicked.connect(self.on_login)
-        # self.buttonRefresh.clicked.connect(self.onRefresh)
-        # self.buttonRegisterAsClient.clicked.connect(self.onRegisterAsClient)
-        # self.buttonRegisterAsWorker.clicked.connect(self.onRegisterAsWorker)
+        self.buttonRefresh.clicked.connect(self.on_refresh)
+        self.buttonRegisterAsClient.clicked.connect(self.on_register_as_client)
+        self.buttonRegisterAsWorker.clicked.connect(self.on_register_as_worker)
+
+    def update_buttons(self):
+        logged_in = w3.is_logged_in()
+        self.buttonRegisterAsClient.setEnabled(logged_in and not m.is_client)
+        self.buttonRegisterAsWorker.setEnabled(logged_in and not m.is_worker)
 
     def on_login(self):
         address = self.textAddress.text()
@@ -61,14 +66,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             self.labelLogin.setText("Incorrect address or password")
 
-    # def onRefresh(self):
-    #     self.refresh()
+    def on_refresh(self):
+        self.refresh()
 
-    # def onRegisterAsClient(self):
-    #     self.massageRoom.registerAsClient(localManager.address)
+    def on_register_as_client(self):
+        self.m.register_as_client(w3.get_account())
 
-    # def onRegisterAsWorker(self):
-    #     self.massageRoom.askToRegisterAsWorker(localManager.address)
+    def on_register_as_worker(self):
+        self.m.register_as_worker(w3.get_account())
 
     # def updateServicesTable(self):
     #     self.tableServices.clear()
@@ -110,11 +115,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     #         if self.tabWidget.currentIndex() == 3:
     #             self.tabWidget.setCurrentIndex(0)
 
-    # def updateButtons(self):
-    #     loggedIn = localManager.isLoggedIn()
-    #     self.buttonRegisterAsClient.setEnabled(loggedIn)
-    #     self.buttonRegisterAsWorker.setEnabled(loggedIn)
-
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
@@ -122,7 +122,6 @@ if __name__ == "__main__":
     w3 = W3("http://25.64.154.247:9545", "python/abi.json")
 
     m = MassageRoom(w3)
-    print(f"{m.isAdmin()=}")
 
     mainWin = MainWindow(m, w3)
     mainWin.show()
