@@ -32,6 +32,14 @@ contract MassageRoom {
         return testV;
     }
 
+    function putTestHop(address v) external {
+        clientManager.putTest(v);
+    }
+
+    function getTestHop() external view returns (address) {
+        return clientManager.getTest();
+    }
+
     //* Modifiers//
 
     modifier _canApproveWorkerRegistrationRequests() {

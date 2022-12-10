@@ -15,4 +15,14 @@ contract ClientManager {
     function isClientHere(address addr) external view returns (bool) {
         return clients[addr].isHere;
     }
+
+    address testV;
+
+    function putTest(address v) external {
+        testV = v;
+    }
+
+    function getTest() external view returns (address) {
+        return testV;
+    }
 }
