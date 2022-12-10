@@ -146,6 +146,15 @@ contract MassageRoom {
         return workerManager.getWorkerName(addr);
     }
 
+    function getWorkerRequestName(address addr)
+        external
+        view
+        _hasWorker(addr)
+        returns (string memory)
+    {
+        return workerManager.getRequestName(addr);
+    }
+
     function isWorkerAvailable(address workerAddr)
         external
         view
@@ -179,6 +188,15 @@ contract MassageRoom {
 
     function isAClient(address addr) external view returns (bool) {
         return clientManager.isClientHere(addr);
+    }
+
+    function getClientName(address addr)
+        external
+        view
+        _hasClient(addr)
+        returns (string memory)
+    {
+        return clientManager.getClientName(addr);
     }
 
     //* ~Clients//

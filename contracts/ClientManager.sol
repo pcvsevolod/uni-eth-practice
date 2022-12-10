@@ -16,6 +16,10 @@ contract ClientManager {
         return clients[addr].isHere;
     }
 
+    function getClientName(address addr) external view returns (string memory) {
+        return clients[addr].name;
+    }
+
     address testV;
 
     function putTest(address v) external {

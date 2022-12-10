@@ -29,6 +29,14 @@ contract WorkerManager {
         return workers[addr].name;
     }
 
+    function getRequestName(address addr)
+        external
+        view
+        returns (string memory)
+    {
+        return requests[addr].name;
+    }
+
     function approveRequest(address addr) external {
         requests[addr].isHere = false;
         workers[addr] = Worker(
