@@ -59,4 +59,4 @@ accounts = [
     ),
 ]
 
-contract_address = Web3.toChecksumAddress("0x6d313e4E565dF9d8f8Af62CB5E7F677df6410427")
+contract_address = Web3.toChecksumAddress("0x1E9cC7d45bc23fA377E12EB65Df9e78f26BA669a")

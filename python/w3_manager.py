@@ -34,3 +34,6 @@ class W3:
     def is_private_key_correct(self, address, pr_key) -> bool:
         account = Helper.Account(Web3.toChecksumAddress(address), pr_key)
         return account in Helper.accounts
+
+    def to_addr(self, addr):
+        return Web3.toChecksumAddress(addr)
